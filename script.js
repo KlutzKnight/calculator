@@ -1,22 +1,24 @@
 const calculator = document.querySelector("#calculator");
 const display = document.querySelector("#display");
 let clearDisplayFlag = true;
-let expression;
+let expression = "";
 
 function add(a, b) {
-    return parseInt(a) + parseInt(b);
+    return Number(a) + Number(b);
 }
 
 function subtract(a, b) {
-    return parseInt(a) - parseInt(b);
+    return Number(a) - Number(b);
 }
 
 function multiply(a, b) {
-    return parseInt(a) * parseInt(b);
+    return Number(a) * Number(b);
 }
 
 function divide(a, b) {
-    return parseInt(a) / parseInt(b);
+    if(Number(b) == 0)
+        return "Can't divide by zero";
+    return Number(a) / Number(b);
 }
 
 function operate(ope1, ope2, opcode) {
@@ -40,7 +42,7 @@ function isNumeric(str) {
 
 function isOperation(str) {
     // Matches for only the basic operations
-    let regExp = /^[-+*÷]+$/;
+    let regExp = /^[-+*÷]$/;
     return regExp.test(str);
 }
 
@@ -60,7 +62,7 @@ function calculate(expression) {
 
     let i = 0;
     // Get operand 1
-    while(!isOperation(expression[i])) {
+    while(i < expression.length && !isOperation(expression[i])) {
         ope1 += expression[i];
         i++;
     }
@@ -74,8 +76,7 @@ function calculate(expression) {
         i++;
     }
 
-    display.value = operate(ope1, ope2, opcode);
-    return display.value;
+    return operate(ope1, ope2, opcode);
 }
 
 function parse(node) {
@@ -109,8 +110,16 @@ function parse(node) {
 
     // Evaluate and Clear the expression and display
     expression += keyPressed;
-    if(keyPressed == "=") {
-        expression = calculate(expression);
+    if(keyPressed === "=") {
+        let result = calculate(expression);
+        if(!isNaN(result)) {
+            display.value = result;
+            expression = display.value;
+        }
+        else {
+            alert(result);
+            clearExpression();
+        }
         clearDisplayFlag = true;
     }
 }
