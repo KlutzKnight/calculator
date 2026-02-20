@@ -36,7 +36,7 @@ function operate(ope1, ope2, opcode) {
     return result;
 }
 
-function isNumeric(str) {
+function isNumericChar(str) {
     // Matches for only numeric
     return "0123456789.".includes(str);
 }
@@ -58,27 +58,53 @@ function calculate(expression) {
     // expresssion is a string
     let ope1 = "";
     let ope2 = "";
-    let opcode = "";
+    let opcode = null;
+    let result = 0;
     let ope1Negative = false;
+    let disableDecimalFlag = false;
 
     let i = 0;
-    
-    // Check for negative sign at the start
-    if(expression[i] === "-") {
-        ope1Negative = true;
-        i++
+    // Check for any operation code at the start and ignore them
+    while(i < expression.length && isOperation(expression[i])) {
+        i++;
     }
+
+    // If - right before ope1, set the flag to negate it
+    if(expression[i-1] === "-") {
+        ope1Negative = true;
+    }
+
     // Get operand 1
     while(i < expression.length && !isOperation(expression[i])) {
+        // Ignore Multiple decimal points
+        if(expression[i] === ".") {
+            if(disableDecimalFlag) {
+                i++;
+                continue;
+            }
+            else disableDecimalFlag = true;
+        }
         ope1 += expression[i];
         i++;
     }
 
     // Get operation Code
-    opcode = expression[i++];
+    while(i < expression.length && isOperation(expression[i])) {
+        opcode = expression[i];
+        i++;
+    }
 
+    disableDecimalFlag = false;
     // Get operand 2
-    while(i < expression.length && expression[i] != "=") {
+    while(i < expression.length && (expression[i] !== "=") && !isOperation(expression[i])) {
+        // Ignore Multiple decimal points
+        if(expression[i] === ".") {
+            if(disableDecimalFlag) {
+                i++;
+                continue;
+            }
+            else disableDecimalFlag = true;
+        }
         ope2 += expression[i];
         i++;
     }
@@ -86,7 +112,34 @@ function calculate(expression) {
     if(ope1Negative)
         ope1 = -ope1;
 
-    return operate(ope1, ope2, opcode);
+    result = operate(ope1, ope2, opcode);
+    
+    while(i < expression.length && expression[i] !== "=") {
+        // Get operation Code
+        while(i < expression.length && isOperation(expression[i])) {
+            opcode = expression[i];
+            i++;
+        }
+        
+        disableDecimalFlag = false;
+        // Get operand 2
+        ope2 = "";
+        while(i < expression.length && (expression[i] !== "=") && !isOperation(expression[i])) {
+            // Ignore Multiple decimal points
+            if(expression[i] === ".") {
+                if(disableDecimalFlag) {
+                    i++;
+                    continue;
+                }
+                else disableDecimalFlag = true;
+            }
+            ope2 += expression[i];
+            i++;
+        }
+        result = operate(result, ope2, opcode);
+    }
+
+    return result;
 }
 
 function parse(node) {
@@ -102,7 +155,7 @@ function parse(node) {
     }
 
     // Clear the display if the flag is set
-    if(clearDisplayFlag && isNumeric(keyPressed)) {
+    if(clearDisplayFlag && isNumericChar(keyPressed)) {
         clearDisplay();
         clearDisplayFlag = false;
         if(!isOperation(expression.at(-1)))
@@ -110,7 +163,7 @@ function parse(node) {
     }
 
     // Display text on screen
-    if(isNumeric(keyPressed)) {
+    if(isNumericChar(keyPressed)) {
         display.value += keyPressed;
     }
     // Sets the clear display flag so it is cleared on next input
