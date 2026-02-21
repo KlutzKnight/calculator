@@ -1,23 +1,22 @@
 const calculator = document.querySelector("#calculator");
 const display = document.querySelector("#display");
 
-let resetDisplay = true;
-let resultEvaluated = false;
+let currentNumber = null;
+let storedNumber = null;
+let operator = null;
 
-let result = 0;
-let operand = "";
-let operation = "+";
+let resetOnNextInput = false;
 
 function add(a, b) {
-    return Number(a) + Number(b);
+    return roundResult(Number(a) + Number(b));
 }
 
 function subtract(a, b) {
-    return Number(a) - Number(b);
+    return roundResult(Number(a) - Number(b));
 }
 
 function multiply(a, b) {
-    return Number(a) * Number(b);
+    return roundResult(Number(a) * Number(b));
 }
 
 function divide(a, b) {
@@ -25,7 +24,11 @@ function divide(a, b) {
     let numB = Number(b);
     if(numB === 0)
         return null;
-    return Math.round((numA/numB) * 10000) / 10000;
+    return roundResult(numA/numB);
+}
+
+function roundResult(result) {
+    return Math.round(result * 10000) / 10000;
 }
 
 function operate(ope1, ope2, opcode) {
@@ -43,73 +46,90 @@ function isNumericChar(str) {
     return "0123456789.".includes(str);
 }
 
-function isOperation(str) {
+function isOperator(str) {
     // Matches for only the basic operations
-    return "+-*÷".includes(str);
+    return "+-*÷=".includes(str);
 }
 
 function clearDisplay() {
+    // Clear the calculator display
     display.value = "";   
 }
 
 function clearState() {
-    result = 0;
-    operand = "";
-    operation = "+";
+    // Reset all the variables
+    currentNumber = null;
+    storedNumber = null;
+    operator = null;
 }
 
 function parse(node) {
+    // Only proceed if node is a button
     if(node.tagName !== "BUTTON")
         return null;
-
-    let buttonPressed = node.textContent;
-    // If C is pressed, clear everything and return
+    
+    let buttonPressed = node.textContent; // The button pressed
+    
+    // Pressing C clears everything
     if(buttonPressed === "C") {
         clearDisplay();
         clearState();
         return;
     }
-
-    if(resultEvaluated) {
-        if(isNumericChar(buttonPressed)) {
-            clearDisplay();
-            clearState();
+    
+    // Only allow one decimal
+    if(buttonPressed === "." && currentNumber.includes(".")) {
+        return
+    }
+    
+    if(isNumericChar(buttonPressed)) {
+        // reset storedNumber if = was pressed before
+        if(resetOnNextInput) {
+            storedNumber = null;
+            resetOnNextInput = false;
         }
-        resultEvaluated = false;
+        
+        // Store the value in currentNumber
+        if(currentNumber === null)
+            currentNumber = buttonPressed;
+        else
+            currentNumber += buttonPressed;
+        display.value = currentNumber;
     }
 
-    // Clear the display
-    if(resetDisplay) {
-        clearDisplay();
-        resetDisplay = false;   
-    }
+    if(isOperator(buttonPressed)) {
+        if(operator !== null && currentNumber !== null && storedNumber !== null) {
+            // Evaluate the result
+            currentNumber = operate(storedNumber, currentNumber, operator);
+            if(currentNumber === null) {
+                // Handle division by zero
+                display.value = "Can't divide by 0";
+                clearState();
+                return
+            }
+            else {
+                // display the result
+                display.value = currentNumber;
+                operator = null;
+            }
 
-    if(buttonPressed === "=") {
-        // Evaluate and display the result
-        result = operate(result, operand, operation);
-        if(result == null) {
-            display.value = "Can't Divide by 0";
+            // store the currentNumber and reset it
+            storedNumber = currentNumber;
+            currentNumber = null;
+            // Set the flag to reset stored number if another number is pressed
+            resetOnNextInput = true; 
         }
-        else {
-            display.value = result;
+
+        if(buttonPressed !== "=") {
+            // store the operator
+            operator = buttonPressed;
+            if(storedNumber === null) {
+                storedNumber = currentNumber;
+            }
+            currentNumber = null;
         }
-        operand = "";
-        resultEvaluated = true;
-        return;
     }
-
-
-    if(!isOperation(buttonPressed)) {
-        display.value += buttonPressed;
-        operand += buttonPressed;
-    }
-
-    if(isOperation(buttonPressed)) {
-        result = operate(result, operand, operation);
-        operation = buttonPressed;
-        operand = "";
-        resetDisplay = true;
-    }
+    console.log(buttonPressed, currentNumber, storedNumber, operator);
 }
 
 clearDisplay();
