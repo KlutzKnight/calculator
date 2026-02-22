@@ -26,8 +26,12 @@ function divide(a, b) {
     return roundResult(numA/numB);
 }
 
+function percentage(ope1, ope2) {
+    return roundResult(ope1 * ope2 / 100);
+}
+
 function modulus(ope1, ope2) {
-    return roundResult(ope1%ope2);
+    return roundResult(ope1 % ope2);
 }
 
 function roundResult(result) {
@@ -41,6 +45,7 @@ function operate(ope1, ope2, opcode) {
         case "*": return multiply(ope1, ope2);
         case "÷": case "/": return divide(ope1, ope2);
         case "%": return modulus(ope1, ope2);
+        // case "%": return percentage(ope1, ope2);
         default: return null;
     }
 }
