@@ -35,7 +35,7 @@ function operate(ope1, ope2, opcode) {
         case "+": return add(ope1, ope2);
         case "-": return subtract(ope1, ope2);
         case "*": return multiply(ope1, ope2);
-        case "÷": return divide(ope1, ope2);
+        case "÷": case "/": return divide(ope1, ope2);
         default: return null;
     }
 }
@@ -47,7 +47,7 @@ function isNumericChar(str) {
 
 function isOperator(str) {
     // Matches for only the basic operations
-    return "+-*÷".includes(str);
+    return "+-*÷/".includes(str);
 }
 
 function clearDisplay() {
@@ -62,12 +62,23 @@ function clearState() {
     currentOperator = null;
 }
 
-function parse(node) {
-    // Only proceed if node is a button
-    if(node.tagName !== "BUTTON")
-        return null;
-    
-    let buttonPressed = node.textContent; // The button pressed
+function parse(event) {
+    let buttonPressed = null;
+    if(event.type === "click") {
+        // Only proceed if node is a button
+        if(event.target.tagName !== "BUTTON")
+            return null;
+        
+        buttonPressed = event.target.textContent; // The button pressed
+        console.log("click", buttonPressed);
+    }
+    else if(event.type === "keydown") {
+        event.preventDefault();
+        buttonPressed = event.key; // The button pressed
+        console.log("keydown", buttonPressed);
+    }
+
+
     
     // Pressing C clears everything
     if(buttonPressed === "C") {
@@ -78,7 +89,7 @@ function parse(node) {
     }
     
     // Backspace button clears current Number
-    if(buttonPressed === "CE") {
+    if(buttonPressed === "CE" || buttonPressed === "Backspace") {
         currentNumber = currentNumber.slice(0, currentNumber.length - 1);
         display.value = currentNumber;
         return;
@@ -109,7 +120,7 @@ function parse(node) {
         display.value = currentNumber;
     }
 
-    if(isOperator(buttonPressed) || buttonPressed === "=") {
+    if(isOperator(buttonPressed) || buttonPressed === "=" || buttonPressed === "Enter") {
         if(currentOperator !== null && currentNumber !== "" && storedNumber !== null) {
             // Evaluate the result
             currentNumber = operate(storedNumber, currentNumber, currentOperator);
@@ -131,7 +142,7 @@ function parse(node) {
             resetOnNextInput = true;
         }
 
-        if(buttonPressed !== "=") {
+        if(buttonPressed !== "=" && buttonPressed !== "Enter") {
             // store the operator
             currentOperator = buttonPressed;
             if(storedNumber === null && currentNumber !== "") {
@@ -147,4 +158,5 @@ function parse(node) {
 
 clearDisplay();
 clearState();
-calculator.addEventListener("click", e => parse(e.target));
+calculator.addEventListener("click", parse);
+document.addEventListener("keydown", parse);
