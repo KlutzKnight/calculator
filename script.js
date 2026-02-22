@@ -1,10 +1,9 @@
 const calculator = document.querySelector("#calculator");
 const display = document.querySelector("#display");
 
-let currentNumber = null;
+let currentNumber = "";
 let storedNumber = null;
-let operator = null;
-
+let currentOperator = null;
 let resetOnNextInput = false;
 
 function add(a, b) {
@@ -48,7 +47,7 @@ function isNumericChar(str) {
 
 function isOperator(str) {
     // Matches for only the basic operations
-    return "+-*÷=".includes(str);
+    return "+-*÷".includes(str);
 }
 
 function clearDisplay() {
@@ -58,9 +57,9 @@ function clearDisplay() {
 
 function clearState() {
     // Reset all the variables
-    currentNumber = null;
+    currentNumber = "";
     storedNumber = null;
-    operator = null;
+    currentOperator = null;
 }
 
 function parse(node) {
@@ -74,33 +73,46 @@ function parse(node) {
     if(buttonPressed === "C") {
         clearDisplay();
         clearState();
+        resetOnNextInput = false;
+        return;
+    }
+    
+    // Backspace button clears current Number
+    if(buttonPressed === "CE") {
+        currentNumber = currentNumber.slice(0, currentNumber.length - 1);
+        display.value = currentNumber;
         return;
     }
     
     // Only allow one decimal
-    if(buttonPressed === "." && currentNumber.includes(".")) {
-        return
+    if(buttonPressed === "." ) {
+        if(currentNumber.includes("."))
+            return;
+
+        if(currentNumber === "") {
+            currentNumber = "0.";
+            display.value = currentNumber;
+            return;
+        }
     }
     
     if(isNumericChar(buttonPressed)) {
         // reset storedNumber if = was pressed before
         if(resetOnNextInput) {
+            currentNumber = "";
             storedNumber = null;
-            resetOnNextInput = false;
+            resetOnNextInput = false
         }
         
         // Store the value in currentNumber
-        if(currentNumber === null)
-            currentNumber = buttonPressed;
-        else
-            currentNumber += buttonPressed;
+        currentNumber += buttonPressed;
         display.value = currentNumber;
     }
 
-    if(isOperator(buttonPressed)) {
-        if(operator !== null && currentNumber !== null && storedNumber !== null) {
+    if(isOperator(buttonPressed) || buttonPressed === "=") {
+        if(currentOperator !== null && currentNumber !== "" && storedNumber !== null) {
             // Evaluate the result
-            currentNumber = operate(storedNumber, currentNumber, operator);
+            currentNumber = operate(storedNumber, currentNumber, currentOperator);
             if(currentNumber === null) {
                 // Handle division by zero
                 display.value = "Can't divide by 0";
@@ -110,26 +122,27 @@ function parse(node) {
             else {
                 // display the result
                 display.value = currentNumber;
-                operator = null;
             }
-
+            
             // store the currentNumber and reset it
             storedNumber = currentNumber;
-            currentNumber = null;
-            // Set the flag to reset stored number if another number is pressed
-            resetOnNextInput = true; 
+            currentNumber = "";
+
+            resetOnNextInput = true;
         }
 
         if(buttonPressed !== "=") {
             // store the operator
-            operator = buttonPressed;
-            if(storedNumber === null) {
+            currentOperator = buttonPressed;
+            if(storedNumber === null && currentNumber !== "") {
                 storedNumber = currentNumber;
             }
-            currentNumber = null;
+            currentNumber = "";
+
+            resetOnNextInput = false;
         }
     }
-    console.log(buttonPressed, currentNumber, storedNumber, operator);
+    console.log(buttonPressed, currentNumber, storedNumber, currentOperator);
 }
 
 clearDisplay();
