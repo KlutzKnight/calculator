@@ -26,6 +26,10 @@ function divide(a, b) {
     return roundResult(numA/numB);
 }
 
+function modulus(ope1, ope2) {
+    return roundResult(ope1%ope2);
+}
+
 function roundResult(result) {
     return Math.round(result * 10000) / 10000;
 }
@@ -36,6 +40,7 @@ function operate(ope1, ope2, opcode) {
         case "-": return subtract(ope1, ope2);
         case "*": return multiply(ope1, ope2);
         case "÷": case "/": return divide(ope1, ope2);
+        case "%": return modulus(ope1, ope2);
         default: return null;
     }
 }
@@ -47,7 +52,7 @@ function isNumericChar(str) {
 
 function isOperator(str) {
     // Matches for only the basic operations
-    return "+-*÷/".includes(str);
+    return "+-*÷/%".includes(str);
 }
 
 function clearDisplay() {
@@ -77,8 +82,6 @@ function parse(event) {
         buttonPressed = event.key; // The button pressed
         console.log("keydown", buttonPressed);
     }
-
-
     
     // Pressing C clears everything
     if(buttonPressed === "C") {
@@ -107,6 +110,16 @@ function parse(event) {
         }
     }
     
+    if(buttonPressed === "+/-") {
+        currentNumber = -currentNumber;
+        display.value = currentNumber;
+        return;
+    }
+
+    if(buttonPressed === "0" && currentNumber == 0) {
+        return;
+    }
+
     if(isNumericChar(buttonPressed)) {
         // reset storedNumber if = was pressed before
         if(resetOnNextInput) {
