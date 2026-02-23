@@ -83,7 +83,7 @@ function parse(event) {
         console.log("click", buttonPressed);
     }
     else if(event.type === "keydown") {
-        event.preventDefault();
+        // event.preventDefault();
         buttonPressed = event.key; // The button pressed
         console.log("keydown", buttonPressed);
     }
@@ -121,7 +121,7 @@ function parse(event) {
         return;
     }
 
-    if(buttonPressed === "0" && currentNumber == 0) {
+    if(buttonPressed === "0" && currentNumber == "0") {
         return;
     }
 
