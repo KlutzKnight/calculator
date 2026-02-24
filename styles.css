@@ -53,3 +53,7 @@ button {
     font-size: x-large;
     box-shadow: 0 5px 5px rgba(0,0,0,0.2);
 }
+
+button:active {
+  background-color: darkgray;
+}
